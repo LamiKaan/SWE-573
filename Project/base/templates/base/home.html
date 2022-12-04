@@ -18,29 +18,35 @@
       <a href="{% url 'home'%}">All</a>
     </div>
 
-    {% for topic in topicscontext%}
+    {% for tag in tagsscontext%}
     <div>
-      <a href="{% url 'home' %}?q={{topic.name}}"> {{topic}} </a>
+      <a href="{% url 'home' %}?q={{tag.name}}"> {{tag}} </a>
     </div>
-
     {% endfor%}
   </div>
 
   <div>
-    <a href="{% url 'create-room' %}">Create Room</a>
+    <h5>{{content_count}} contents available</h5>
+    <a href="{% url 'create-content' %}">Create New Content</a>
     <hr />
     <div>
-      {% for room in roomscontext %}
+      {% for content in contentscontext %}
       <div>
-        <a href="{% url 'update-room' room.id %}"> Update Room </a>
+        {% if request.user == content.owner %}
+        <a href="{% url 'update-content' content.id %}"> Update Content </a>
         <br />
-        <a href="{% url 'delete-room' room.id %}"> Delete Room </a>
+        <a href="{% url 'delete-content' content.id %}"> Delete Content </a>
         <br />
-        <span>@{{room.host.username}}</span>
+        {% endif %}
+
+        <span>@{{content.owner.username}}</span>
         <h5>
-          {{room.id}} -- <a href="{% url 'room' room.id %}">{{room.name}}</a>
+          {{content.id}} --
+          <a href="{% url 'content' content.id %}">{{content.header}}</a>
         </h5>
-        <small>{{room.topic.name}}</small>
+        {% for tag in content.tag.all %}
+        <small>{{tag.name}}</small>
+        {% endfor%}
         <hr />
       </div>
       {% endfor %}

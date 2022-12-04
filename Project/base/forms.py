@@ -1,8 +1,12 @@
 from django.forms import ModelForm
-from .models import Room
+from django.forms import CharField
+from .models import Content
 
 
-class RoomForm(ModelForm):
+class ContentForm(ModelForm):
+    tag = CharField()
+
     class Meta:
-        model = Room
+        model = Content
+        # fields = ['owner', 'header', 'description']
         fields = '__all__'
