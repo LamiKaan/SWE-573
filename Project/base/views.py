@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
 
 from .models import Tag, Content, Message
-from .forms import ContentForm
+from .forms import ContentForm, RegisterForm
 # Create your views here.
 
 # rooms = [
@@ -53,20 +53,21 @@ def logoutUser(request):
 
 
 def registerPage(request):
-    form = UserCreationForm()
+    form = RegisterForm()
 
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
             user.username = user.username.lower()
+            user.email = user.email.lower()
             user.save()
             login(request, user)
             return redirect('home')
         else:
             messages.error(request, 'An error occured during registration')
 
-    return render(request, 'base/login_register.html', {'form': form})
+    return render(request, 'base/register.html', {'form': form})
 
 
 def content(request, pk):
@@ -101,7 +102,9 @@ def home(request):
                 Q(description__icontains=q)
             ).distinct()
 
-    print(contents)
+    # print('Below are all the contents')
+    # print()
+    # print(contents)
 
     content_count = contents.count()
     tags = Tag.objects.all()
@@ -113,48 +116,95 @@ def home(request):
 
 @login_required(login_url='login')
 def createContent(request: HttpRequest):
-    # form = ContentForm()
+    form = ContentForm()
 
     if request.method == 'POST':
-        # print(request.POST)
-        # form = ContentForm(request.POST)
-        # if form.is_valid():
-        #     form.save()
-        #     return redirect('home')
-        content_obj = Content.objects.create(header=request.POST['header'],
-                                             description=request.POST['description'],
-                                             owner=request.user)
+        form = ContentForm(request.POST)
+        if form.is_valid():
+            obj_owner = request.user
+            obj_header = form.cleaned_data['header']
+            obj_link = form.cleaned_data['link']
+            obj_description = form.cleaned_data['description']
+            obj_visibility = form.cleaned_data['visibility']
 
-        for tagname in request.POST['tag'].split(','):
-            currenttag, _ = Tag.objects.get_or_create(name=tagname)
-            content_obj.tag.add(currenttag)
+            content_obj = Content.objects.create(
+                owner=obj_owner, header=obj_header, link=obj_link, description=obj_description, visibility=obj_visibility)
 
-        content_obj.save()
-        return redirect('home')
+            for obj_tag in form.cleaned_data['tag'].replace(" ", "").split(','):
+                obj_tag, _ = Tag.objects.get_or_create(name=obj_tag)
+                content_obj.tag.add(obj_tag)
 
-    # context = {'form': form}
+            content_obj.save()
+            return redirect('home')
 
-    return render(request, 'base/content_form.html')
+    # if request.method == 'POST':
+    #     # print(request.POST)
+    #     # form = ContentForm(request.POST)
+    #     # if form.is_valid():
+    #     #     form.save()
+    #     #     return redirect('home')
+    #     content_obj = Content.objects.create(header=request.POST['header'],
+    #                                          description=request.POST['description'],
+    #                                          owner=request.user)
+
+    #     for tagname in request.POST['tag'].replace(" ", "").split(','):
+    #         currenttag, _ = Tag.objects.get_or_create(name=tagname)
+    #         content_obj.tag.add(currenttag)
+
+    #     content_obj.save()
+    #     return redirect('home')
+
+    context = {'form': form, 'value': 'Create'}
+
+    return render(request, 'base/content_form_2.html', context)
     # return HttpResponse('Oto')
 
 
 @login_required(login_url='login')
 def updateContent(request, pk):
-    content = Content.objects.get(id=pk)
+
+    content = Content.objects.get(id=int(pk))
+
+    # print(content)
+    content_tags = content.tag.all()
+    tags_list = []
+    for eachtag in content_tags:
+        tags_list.append(eachtag.name)
+    # print(tags_list)
+    tags_str = ', '.join(tags_list)
+    # print(tags_str)
+    # print()
+    # print(content_tags)
+    # print(type(content_tags[0]))
+    # print(content_tags[0].name)
 
     form = ContentForm(instance=content)
+    form.initial['tag'] = tags_str
 
     if request.user != content.owner:
         return HttpResponse('You are not allowed here!')
 
     if request.method == 'POST':
-        form = ContentForm(request.POST, instance=content)
+        # form = ContentForm(request.POST, instance=content)
+        form = ContentForm(request.POST)
         if form.is_valid():
-            form.save()
+            content.header = form.cleaned_data['header']
+            content.link = form.cleaned_data['link']
+            content.description = form.cleaned_data['description']
+            content.visibility = form.cleaned_data['visibility']
+
+            for eachtag in content_tags:
+                content.tag.remove(eachtag)
+
+            for new_tag in form.cleaned_data['tag'].replace(" ", "").split(','):
+                new_tag, _ = Tag.objects.get_or_create(name=new_tag)
+                content.tag.add(new_tag)
+
+            content.save()
             return redirect('home')
 
-    context = {'form': form}
-    return render(request, 'base/content_form.html', context)
+    context = {'form': form, 'value': 'Save'}
+    return render(request, 'base/content_form_2.html', context)
 
 
 @login_required(login_url='login')

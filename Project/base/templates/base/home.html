@@ -34,19 +34,38 @@
       <div>
         {% if request.user == content.owner %}
         <a href="{% url 'update-content' content.id %}"> Update Content </a>
-        <br />
+        <span>&nbsp;</span>
         <a href="{% url 'delete-content' content.id %}"> Delete Content </a>
+        <br />
         <br />
         {% endif %}
 
-        <span>@{{content.owner.username}}</span>
+        <span>Owner:{{content.owner.username}}</span> <br />
+        <span>Content ID:{{content.id}}</span> <br />
+        <span>
+          Header:<a href="{% url 'content' content.id %}">{{content.header}}</a>
+        </span>
+        <br />
+        <span
+          >Link:<a href="{{content.link}}" target="_blank"
+            >{{content.link}}</a
+          ></span
+        >
+        <br />
+
+        {% comment %}
         <h5>
           {{content.id}} --
           <a href="{% url 'content' content.id %}">{{content.header}}</a>
         </h5>
-        {% for tag in content.tag.all %}
-        <small>{{tag.name}}</small>
-        {% endfor%}
+        {% endcomment %}
+        <span
+          >Tags: {% for tag in content.tag.all %}
+          <small>{{tag.name}}</small>
+          {% endfor%}
+        </span>
+        <br />
+        <span>Visibility:{{content.visibility}}</span>
         <hr />
       </div>
       {% endfor %}

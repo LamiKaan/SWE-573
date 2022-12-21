@@ -14,12 +14,27 @@ class Content(models.Model):
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     tag = models.ManyToManyField(Tag)
     header = models.CharField(max_length=200)
+    link = models.URLField(null=True)
     # null --> for allowing empty values (in database)
     # blank --> for submitting forms with empty values
     description = models.TextField(null=True, blank=True)
     # participants =
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
+
+    PUBLIC = 'public'
+    SHARED = 'shared'
+    PRIVATE = 'private'
+    VISIBILITY_CHOICES = [
+        (PUBLIC, 'Public'),
+        (SHARED, 'Shared'),
+        (PRIVATE, 'Private'),
+    ]
+    visibility = models.CharField(
+        max_length=7,
+        choices=VISIBILITY_CHOICES,
+        default=PUBLIC,
+    )
 
     class Meta:
         ordering = ['-updated', '-created']
