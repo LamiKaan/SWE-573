@@ -1,0 +1,10 @@
+{% extends 'main.html' %} {% load static %} {% block content %}
+<h1>Profile Template</h1>
+<a href="{% url 'edit-profile' profile.owner.id %}"> Edit Profile </a>
+<h2>User: {{profile.owner.username}}</h2>
+<h2>
+  <img src="{{profile.profile_pic.url}}" alt="Default Profile Pic" />
+</h2>
+<h2>Bio: {{profile.bio}}</h2>
+
+{% endblock %}

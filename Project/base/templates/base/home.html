@@ -40,7 +40,17 @@
         <br />
         {% endif %}
 
-        <span>Owner:{{content.owner.username}}</span> <br />
+        <span>
+          Owner:<a href="{% url 'profile' content.owner.id %}"
+            >{{content.owner.username}}</a
+          >
+        </span>
+        <br />
+        {% comment %}
+        <a href="{% url 'profile' content.owner.id %}"
+          >{{content.owner.username}}</a
+        >
+        {% endcomment %}
         <span>Content ID:{{content.id}}</span> <br />
         <span>
           Header:<a href="{% url 'content' content.id %}">{{content.header}}</a>

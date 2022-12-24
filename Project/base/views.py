@@ -8,8 +8,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
 
-from .models import Tag, Content, Message
-from .forms import ContentForm, RegisterForm
+from .models import Tag, Content, Message, Profile
+from .forms import ContentForm, RegisterForm, ProfileForm
 # Create your views here.
 
 # rooms = [
@@ -63,6 +63,9 @@ def registerPage(request):
             user.email = user.email.lower()
             user.save()
             login(request, user)
+
+            profile_obj = Profile.objects.create(owner=user)
+            profile_obj.save()
             return redirect('home')
         else:
             messages.error(request, 'An error occured during registration')
@@ -71,9 +74,45 @@ def registerPage(request):
 
 
 def content(request, pk):
-    content = Content.objects.get(id=pk)
+    content = Content.objects.get(id=int(pk))
     context = {'content': content}
     return render(request, 'base/content.html', context)
+
+
+def profile(request, pk):
+    user = User.objects.get(id=int(pk))
+    try:
+        profile = Profile.objects.get(owner__id=int(pk))
+    except:
+        profile = Profile.objects.create(owner=user)
+        profile.save()
+
+    context = {'profile': profile}
+    return render(request, 'base/profile.html', context)
+
+
+def editProfile(request, pk):
+    profile = Profile.objects.get(owner__id=int(pk))
+    form = ProfileForm(instance=profile)
+
+    pk_var = str(profile.owner.id)
+    # print(pk_var)
+
+    if request.method == 'POST' and 'Save' in request.POST:
+        form = ProfileForm(request.POST, request.FILES)
+        if form.is_valid():
+            profile.bio = form.cleaned_data['bio']
+            profile.profile_pic = form.cleaned_data['profile_pic']
+            profile.save()
+
+            return redirect('profile', pk=pk_var)
+
+    elif request.method == 'POST' and 'Cancel' in request.POST:
+
+        return redirect('profile', pk=pk_var)
+
+    context = {'form': form, 'value': 'Save', 'profile': profile}
+    return render(request, 'base/profile_edit.html', context)
 
 
 def home(request):
@@ -105,6 +144,8 @@ def home(request):
     # print('Below are all the contents')
     # print()
     # print(contents)
+
+    print(contents)
 
     content_count = contents.count()
     tags = Tag.objects.all()

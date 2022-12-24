@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+
+from django.core.exceptions import ValidationError
 # Create your models here.
 
 
@@ -11,7 +13,7 @@ class Tag(models.Model):
 
 
 class Content(models.Model):
-    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     tag = models.ManyToManyField(Tag)
     header = models.CharField(max_length=200)
     link = models.URLField(null=True)
@@ -52,3 +54,28 @@ class Message(models.Model):
 
     def __str__(self):
         return self.body[0:50]
+
+
+class Profile(models.Model):
+    owner = models.OneToOneField(User, on_delete=models.CASCADE)
+    bio = models.TextField(null=True, blank=True)
+    profile_pic = models.ImageField(
+        default='default_profile_pic.png', null=True, blank=True)
+
+    def __str__(self):
+        return self.owner.username
+
+
+class Follow(models.Model):
+    followee = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='followed_profile')
+    follower = models.OneToOneField(
+        Profile, on_delete=models.CASCADE, related_name='following_profile')
+
+    def clean(self):
+        if self.followee == self.follower:
+            raise ValidationError("Users can't follow themselves")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)

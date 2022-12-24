@@ -8,6 +8,10 @@ urlpatterns = [
 
 
     path('', views.home, name="home"),
+    path('profile/<str:pk>', views.profile, name="profile"),
+    path('edit-profile/<str:pk>', views.editProfile, name="edit-profile"),
+
+
     path('content/<str:pk>/', views.content, name="content"),
 
     path('create-content/', views.createContent, name="create-content"),

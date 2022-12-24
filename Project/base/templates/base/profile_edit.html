@@ -1,0 +1,15 @@
+{%extends 'main.html' %} {% load static %} {% block content %}
+
+<div>
+  <p>User: {{ profile.owner.username }}</p>
+  <form method="POST" action="" enctype="multipart/form-data">
+    {% csrf_token %} {{form.as_p}}
+
+    <input type="submit" name="Save" value="{{value}}" />
+    <span>&nbsp;</span>
+    <input type="submit" name="Cancel" value="Cancel" />
+  </form>
+  {% comment %} <span>&nbsp;</span> {% endcomment %}
+</div>
+
+{% endblock content %}
