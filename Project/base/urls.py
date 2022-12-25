@@ -18,4 +18,7 @@ urlpatterns = [
     path('update-content/<str:pk>', views.updateContent, name="update-content"),
     path('delete-content/<str:pk>', views.deleteContent, name="delete-content"),
 
+
+    path('delete-message/<str:pk>', views.deleteMessage, name="delete-message"),
+
 ]

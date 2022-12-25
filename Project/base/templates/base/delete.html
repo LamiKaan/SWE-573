@@ -2,7 +2,9 @@
 
 <form method="POST" action="">
   {% csrf_token %}
-  <p>Are you sure you want to delete "{{obj}}"?</p>
+  <p>
+    Are you sure you want to delete "{{obj}}"? This action cannot be reversed.
+  </p>
 
   <a href="{{ request.META.HTTP_REFERER }}">Go Back</a>
   <input type="submit" value="Confirm" />

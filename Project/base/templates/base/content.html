@@ -1,6 +1,17 @@
 {% extends 'main.html' %} {% block content %}
 <h1>Content Template</h1>
 
+{% if request.user == content.owner %}
+<pre></pre>
+{% if editable %}
+<a href="{% url 'update-content' content.id %}"> Update Content </a>
+<span>&nbsp;</span>
+{% endif %}
+<a href="{% url 'delete-content' content.id %}"> Delete Content </a>
+<br />
+<br />
+{% endif %}
+
 <h2>Owner:</h2>
 <a href="{% url 'profile' content.owner.id %}">{{content.owner.username}}</a>
 
@@ -36,4 +47,41 @@
   <input type="submit" name="Unlike" value="Unlike" />
   {% endif %}
 </form>
-{% endif %} {% endblock %}
+{% endif %}
+
+<div class="comment-wrapper">
+  <h3>Comments</h3>
+  <hr />
+
+  {% for comment in comments%}
+  <div>
+    <small
+      ><a href="{% url 'profile' comment.user.pk %}">{{comment.user}}</a>
+      commented {{comment.created | timesince}} ago
+      <span>&nbsp;&nbsp;</span>
+      {% if request.user == comment.user %}
+      <a href="{% url 'delete-message' comment.pk %}">Delete Comment</a>
+      {% endif %}
+    </small>
+    <p>{{comment.body}}</p>
+    <hr />
+  </div>
+  {% endfor%}
+
+  <div class="comment-form">
+    <form action="" method="POST">
+      {% csrf_token %}
+      <input
+        type="text"
+        name="comment-text"
+        placeholder="Write your message here..."
+        required
+        pattern="\S(.*\S)?"
+        title="Please provide a non-empty comment"
+      />
+      <input type="submit" name="submit-comment" value="Comment" />
+    </form>
+  </div>
+</div>
+
+{% endblock %}

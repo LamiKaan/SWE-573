@@ -18,7 +18,7 @@
       <a href="{% url 'home'%}">All</a>
     </div>
 
-    {% for tag in tagsscontext%}
+    {% for tag in tags%}
     <div>
       <a href="{% url 'home' %}?q={{tag.name}}"> {{tag}} </a>
     </div>
@@ -26,22 +26,26 @@
   </div>
 
   <div>
-    <h5>{{content_count}} contents available</h5>
+    <h5>{{contents_all_count}} contents available</h5>
     <a href="{% url 'create-content' %}">Create New Content</a>
     <hr />
     <div>
-      {% for content in contentscontext %}
+      {% for content in contents_all %}
       <div>
-        {% if request.user == content.owner %}
+        {% if request.user == content.owner%}
+        <pre></pre>
+        {% if content in editable_contents %}
         <a href="{% url 'update-content' content.id %}"> Update Content </a>
         <span>&nbsp;</span>
+        {% endif %}
         <a href="{% url 'delete-content' content.id %}"> Delete Content </a>
+
         <br />
         <br />
         {% endif %}
 
         <span>
-          Owner:<a href="{% url 'profile' content.owner.id %}"
+          Owner:<a href="{% url 'profile' content.owner.pk %}"
             >{{content.owner.username}}</a
           >
         </span>

@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -76,7 +76,7 @@ def registerPage(request):
 @login_required(login_url='login')
 def content(request, pk):
     content = Content.objects.get(id=int(pk))
-    pk_var = content.pk
+    pk_var = str(content.pk)
     # print(content.likes)
     # print(content.likes.count())
     like_count = content.likes.count()
@@ -96,8 +96,22 @@ def content(request, pk):
 
         return redirect('content', pk=pk_var)
 
+    elif request.method == 'POST' and 'submit-comment' in request.POST:
+        new_comment = Message.objects.create(
+            user=request.user, content=content, body=request.POST.get('comment-text'))
+        new_comment.save()
+
+        return redirect('content', pk=pk_var)
+
+    comments = Message.objects.filter(content=content)
+
+    if content.its_messages.all().exclude(user=content.owner).count() + content.likes.count() == 0:
+        editable = 1
+    else:
+        editable = 0
+
     context = {'content': content, 'like_count': like_count,
-               'like_status': like_status}
+               'like_status': like_status, 'comments': comments, 'editable': editable}
     return render(request, 'base/content.html', context)
 
 
@@ -147,6 +161,7 @@ def profile(request, pk):
 
         # return redirect('profile', pk=pk_var)
         return redirect('home')
+        # return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
     context = {'profile': profile, 'follow_status': follow_status}
     return render(request, 'base/profile.html', context)
@@ -196,12 +211,13 @@ def home(request):
     page_type = request.GET.get('page_type')
 
     if page_type == 'me':
-        contents = Content.objects.filter(owner=request.user)
+        contents_all = Content.objects.filter(owner=request.user)
     else:
         if q == None:
-            contents = Content.objects.all()
+            contents_my = Content.objects.filter(owner=request.user)
+            contents_all = Content.objects.all()
         else:
-            contents = Content.objects.filter(
+            contents_all = Content.objects.filter(
                 Q(tag__name__icontains=q) |
                 Q(header__icontains=q) |
                 Q(description__icontains=q)
@@ -211,14 +227,19 @@ def home(request):
     # print()
     # print(contents)
 
-    content_count = contents.count()
+    contents_all_count = contents_all.count()
     tags = Tag.objects.all()
+
+    editable_contents = []
+    for each_content in contents_all:
+        if each_content.its_messages.all().exclude(user=each_content.owner).count() + each_content.likes.count() == 0:
+            editable_contents.append(each_content)
 
     print(request.session.keys())
     print(request.session.values())
 
-    context = {'contentscontext': contents,
-               'tagscontext': tags, 'content_count': content_count}
+    context = {'contents_all': contents_all,
+               'tags': tags, 'contents_all_count': contents_all_count, 'editable_contents': editable_contents}
     return render(request, 'base/home.html', context)
 
 
@@ -276,6 +297,9 @@ def updateContent(request, pk):
     if request.user != content.owner:
         return HttpResponse('You are not allowed here!')
 
+    if content.its_messages.all().exclude(user=content.owner).count() + content.likes.count() > 0:
+        return HttpResponse("You can't update a content that already has likes or comments from other users. You can only delete it.")
+
     # print(content)
     content_tags = content.tag.all()
     tags_list = []
@@ -317,7 +341,7 @@ def updateContent(request, pk):
 
 @login_required(login_url='login')
 def deleteContent(request, pk):
-    content = Content.objects.get(id=pk)
+    content = Content.objects.get(id=int(pk))
 
     if request.user != content.owner:
         return HttpResponse('You are not allowed here!')
@@ -327,3 +351,19 @@ def deleteContent(request, pk):
         return redirect('home')
 
     return render(request, 'base/delete.html', {'obj': content})
+
+
+@login_required(login_url='login')
+def deleteMessage(request, pk):
+    comment = Message.objects.get(id=int(pk))
+
+    content_pk = str(comment.content.pk)
+
+    if request.user != comment.user:
+        return HttpResponse('You are not allowed here!')
+
+    if request.method == 'POST':
+        comment.delete()
+        return redirect('content', pk=content_pk)
+
+    return render(request, 'base/delete.html', {'obj': comment})

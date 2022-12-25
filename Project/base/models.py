@@ -16,7 +16,7 @@ class Content(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     tag = models.ManyToManyField(Tag)
     header = models.CharField(max_length=200)
-    link = models.URLField(null=True)
+    link = models.URLField(null=True, blank=True)
     # null --> for allowing empty values (in database)
     # blank --> for submitting forms with empty values
     description = models.TextField(null=True, blank=True)
@@ -24,7 +24,8 @@ class Content(models.Model):
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
 
-    likes = models.ManyToManyField(User, related_name='has_liked_objects')
+    likes = models.ManyToManyField(
+        User, related_name='has_liked_objects', blank=True)
 
     PUBLIC = 'public'
     SHARED = 'shared'
@@ -49,13 +50,17 @@ class Content(models.Model):
 
 class Message(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.ForeignKey(Content, on_delete=models.CASCADE)
-    body = models.TextField()
+    content = models.ForeignKey(
+        Content, on_delete=models.CASCADE, related_name='its_messages')
+    body = models.TextField(blank=False)
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.body[0:50]
+        if len(self.body) < 50:
+            return self.body
+        else:
+            return self.body[0:47] + '...'
 
 
 class Profile(models.Model):
