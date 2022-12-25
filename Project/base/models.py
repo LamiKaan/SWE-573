@@ -24,6 +24,8 @@ class Content(models.Model):
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
 
+    likes = models.ManyToManyField(User, related_name='has_liked_objects')
+
     PUBLIC = 'public'
     SHARED = 'shared'
     PRIVATE = 'private'
@@ -68,14 +70,24 @@ class Profile(models.Model):
 
 class Follow(models.Model):
     followee = models.ForeignKey(
-        Profile, on_delete=models.CASCADE, related_name='followed_profile')
-    follower = models.OneToOneField(
-        Profile, on_delete=models.CASCADE, related_name='following_profile')
+        Profile, on_delete=models.CASCADE, related_name='followed_profiles')
+    follower = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='following_profiles')
 
     def clean(self):
         if self.followee == self.follower:
             raise ValidationError("Users can't follow themselves")
 
+        objects = Follow.objects.all().order_by('-pk')
+        last_pk = objects[0].pk
+
+        if Follow.objects.filter(followee=self.followee, follower=self.follower).exclude(pk=last_pk).count() > 0:
+            raise ValidationError(
+                "Can't create another follow with same users")
+
     def save(self, *args, **kwargs):
         self.full_clean()
-        super().save(*args, **kwargs)
+        return super(Follow, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return 'Followed: ' + self.followee.owner.username + ' - Follower: ' + self.follower.owner.username

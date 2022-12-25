@@ -8,7 +8,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
 
-from .models import Tag, Content, Message, Profile
+from .models import Tag, Content, Message, Profile, Follow
 from .forms import ContentForm, RegisterForm, ProfileForm
 # Create your views here.
 
@@ -73,29 +73,95 @@ def registerPage(request):
     return render(request, 'base/register.html', {'form': form})
 
 
+@login_required(login_url='login')
 def content(request, pk):
     content = Content.objects.get(id=int(pk))
-    context = {'content': content}
+    pk_var = content.pk
+    # print(content.likes)
+    # print(content.likes.count())
+    like_count = content.likes.count()
+
+    if content.likes.filter(id=request.user.pk).exists():
+        like_status = True
+    else:
+        like_status = False
+
+    if request.method == 'POST' and 'Like' in request.POST:
+        content.likes.add(request.user)
+
+        return redirect('content', pk=pk_var)
+
+    elif request.method == 'POST' and 'Unlike' in request.POST:
+        content.likes.remove(request.user)
+
+        return redirect('content', pk=pk_var)
+
+    context = {'content': content, 'like_count': like_count,
+               'like_status': like_status}
     return render(request, 'base/content.html', context)
 
 
+@login_required(login_url='login')
 def profile(request, pk):
     user = User.objects.get(id=int(pk))
+
     try:
         profile = Profile.objects.get(owner__id=int(pk))
     except:
         profile = Profile.objects.create(owner=user)
         profile.save()
 
-    context = {'profile': profile}
+    pk_var = str(profile.owner.pk)
+
+    # print(profile)
+    # print(type(profile))
+    # print(profile.owner)
+    # print(type(profile.owner))
+    # print(profile)
+    follow_objects = Follow.objects.filter(followee=profile)
+    # print(type(follows))
+    # print(follows)
+    follower_users = []
+    for follow in follow_objects:
+        # print(follow.follower)
+        follower_users.append(follow.follower.owner)
+    # print(followers)
+    # print(followers[0])
+    follow_status = request.user in follower_users
+    # print(follow_status)
+
+    request_profile = Profile.objects.get(owner=request.user)
+
+    if request.method == 'POST' and 'Follow' in request.POST:
+        follow_obj = Follow.objects.create(
+            followee=profile, follower=request_profile)
+        follow_obj.save()
+
+        return redirect('profile', pk=pk_var)
+        # return redirect('home')
+
+    elif request.method == 'POST' and 'Unfollow' in request.POST:
+        follow_obj = Follow.objects.get(
+            followee=profile, follower=request_profile)
+        follow_obj.delete()
+
+        # return redirect('profile', pk=pk_var)
+        return redirect('home')
+
+    context = {'profile': profile, 'follow_status': follow_status}
     return render(request, 'base/profile.html', context)
 
 
+@login_required(login_url='login')
 def editProfile(request, pk):
     profile = Profile.objects.get(owner__id=int(pk))
+
+    if request.user != profile.owner:
+        return HttpResponse('You are not allowed here!')
+
     form = ProfileForm(instance=profile)
 
-    pk_var = str(profile.owner.id)
+    pk_var = str(profile.owner.pk)
     # print(pk_var)
 
     if request.method == 'POST' and 'Save' in request.POST:
@@ -145,10 +211,11 @@ def home(request):
     # print()
     # print(contents)
 
-    print(contents)
-
     content_count = contents.count()
     tags = Tag.objects.all()
+
+    print(request.session.keys())
+    print(request.session.values())
 
     context = {'contentscontext': contents,
                'tagscontext': tags, 'content_count': content_count}
@@ -206,6 +273,9 @@ def updateContent(request, pk):
 
     content = Content.objects.get(id=int(pk))
 
+    if request.user != content.owner:
+        return HttpResponse('You are not allowed here!')
+
     # print(content)
     content_tags = content.tag.all()
     tags_list = []
@@ -221,9 +291,6 @@ def updateContent(request, pk):
 
     form = ContentForm(instance=content)
     form.initial['tag'] = tags_str
-
-    if request.user != content.owner:
-        return HttpResponse('You are not allowed here!')
 
     if request.method == 'POST':
         # form = ContentForm(request.POST, instance=content)

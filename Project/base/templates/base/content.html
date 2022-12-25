@@ -1,6 +1,39 @@
 {% extends 'main.html' %} {% block content %}
 <h1>Content Template</h1>
-<h2>Content ID: {{content.id}}</h2>
-<h2>Content Name: {{content.header}}</h2>
 
-{% endblock %}
+<h2>Owner:</h2>
+<a href="{% url 'profile' content.owner.id %}">{{content.owner.username}}</a>
+
+<div>
+  <h2>Content ID:</h2>
+  <span>{{content.id}}</span>
+</div>
+
+<h2>Content Name:</h2>
+<p>{{content.header}}</p>
+
+<h2>Link:</h2>
+<a href="{{content.link}}" target="_blank">{{content.link}}</a>
+
+<h2>Tags:</h2>
+{% for tag in content.tag.all %}
+<small>{{tag.name}}</small>
+{% endfor%}
+
+<h2>Description:</h2>
+<p>{{content.description}}</p>
+
+<h2>Visibility:</h2>
+<p>{{content.visibility}}</p>
+
+<p>{{like_count}} likes</p>
+
+{% if request.user != content.owner %}
+<form method="POST" action="">
+  {% csrf_token %} {% if like_status == False %}
+  <input type="submit" name="Like" value="Like" />
+  {% else %}
+  <input type="submit" name="Unlike" value="Unlike" />
+  {% endif %}
+</form>
+{% endif %} {% endblock %}

@@ -1,6 +1,17 @@
 {% extends 'main.html' %} {% load static %} {% block content %}
 <h1>Profile Template</h1>
-<a href="{% url 'edit-profile' profile.owner.id %}"> Edit Profile </a>
+{% if request.user == profile.owner %}
+<a href="{% url 'edit-profile' profile.owner.pk %}"> Edit Profile </a>
+{% else %}
+<form method="POST" action="">
+  {% csrf_token %} {% if follow_status == False %}
+  <input type="submit" name="Follow" value="Follow" />
+  {% else %}
+  <input type="submit" name="Unfollow" value="Unfollow" />
+  {% endif %}
+</form>
+
+{% endif %}
 <h2>User: {{profile.owner.username}}</h2>
 <h2>
   <img src="{{profile.profile_pic.url}}" alt="Default Profile Pic" />
