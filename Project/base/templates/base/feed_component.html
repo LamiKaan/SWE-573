@@ -1,0 +1,55 @@
+<div>
+  {% for content in contents_all %}
+  <div>
+    {% if request.user == content.owner%}
+    <pre></pre>
+    {% if content in editable_contents %}
+    <a href="{% url 'update-content' content.pk %}"> Update Content </a>
+    <span>&nbsp;</span>
+    {% endif %}
+    <a href="{% url 'delete-content' content.pk %}"> Delete Content </a>
+
+    <br />
+    <br />
+    {% endif %}
+
+    <span>
+      Owner:<a href="{% url 'profile' content.owner.pk %}"
+        >{{content.owner.username}}</a
+      >
+    </span>
+    <br />
+    {% comment %}
+    <a href="{% url 'profile' content.owner.id %}"
+      >{{content.owner.username}}</a
+    >
+    {% endcomment %}
+    <span>Content ID:{{content.pk}}</span> <br />
+    <span>
+      Header:<a href="{% url 'content' content.pk %}">{{content.header}}</a>
+    </span>
+    <br />
+    <span
+      >Link:<a href="{{content.link}}" target="_blank"
+        >{{content.link}}</a
+      ></span
+    >
+    <br />
+
+    {% comment %}
+    <h5>
+      {{content.id}} --
+      <a href="{% url 'content' content.id %}">{{content.header}}</a>
+    </h5>
+    {% endcomment %}
+    <span
+      >Tags: {% for tag in content.tag.all %}
+      <small>{{tag.name}}</small>
+      {% endfor%}
+    </span>
+    <br />
+    <span>Visibility:{{content.visibility}}</span>
+    <hr />
+  </div>
+  {% endfor %}
+</div>

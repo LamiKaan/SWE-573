@@ -14,7 +14,7 @@ class Tag(models.Model):
 
 class Content(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    tag = models.ManyToManyField(Tag)
+    tag = models.ManyToManyField(Tag, blank=True)
     header = models.CharField(max_length=200)
     link = models.URLField(null=True, blank=True)
     # null --> for allowing empty values (in database)

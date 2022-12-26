@@ -8,6 +8,9 @@ urlpatterns = [
 
 
     path('', views.home, name="home"),
+    # path('my', views.my, name="my"),
+    # path('friends', views.friends, name="friends"),
+    # path('other', views.other, name="other"),
     path('profile/<str:pk>', views.profile, name="profile"),
     path('edit-profile/<str:pk>', views.editProfile, name="edit-profile"),
 

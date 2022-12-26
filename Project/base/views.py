@@ -163,7 +163,29 @@ def profile(request, pk):
         return redirect('home')
         # return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-    context = {'profile': profile, 'follow_status': follow_status}
+    follow_back = Follow.objects.filter(
+        followee=request_profile, follower=profile).exists()
+
+    contents_all = Content.objects.filter(owner=profile.owner)
+    if profile == request_profile:
+        visible_contents = contents_all.order_by('-created')
+    else:
+        if follow_status and follow_back:
+            visible_contents = contents_all.filter(
+                visibility__in=['shared', 'public']).distinct().order_by('-created')
+        else:
+            visible_contents = contents_all.filter(
+                visibility__in=['public']).distinct().order_by('-created')
+
+    visible_contents_count = visible_contents.count()
+
+    editable_contents = []
+    for each_content in visible_contents:
+        if each_content.its_messages.all().exclude(user=each_content.owner).count() + each_content.likes.count() == 0:
+            editable_contents.append(each_content)
+
+    context = {'profile': profile, 'follow_status': follow_status,
+               'follow_back': follow_back, 'visible_contents': visible_contents, 'visible_contents_count': visible_contents_count, 'editable_contents': editable_contents}
     return render(request, 'base/profile.html', context)
 
 
@@ -208,24 +230,69 @@ def home(request):
     '''
     # /home?q=asd&page_type=me&
     q = request.GET.get('q') if request.GET.get('q') != None else ''
-    page_type = request.GET.get('page_type')
 
-    if page_type == 'me':
-        contents_all = Content.objects.filter(owner=request.user)
+    request.session['q'] = q
+
+    if q == '':
+        # Every content in the database based on search results
+        contents = Content.objects.all().distinct()
     else:
-        if q == None:
-            contents_my = Content.objects.filter(owner=request.user)
-            contents_all = Content.objects.all()
-        else:
-            contents_all = Content.objects.filter(
-                Q(tag__name__icontains=q) |
-                Q(header__icontains=q) |
-                Q(description__icontains=q)
-            ).distinct()
+        # Every content in the database based on search results
+        contents = Content.objects.filter(
+            Q(tag__name__icontains=q) |
+            Q(header__icontains=q) |
+            Q(description__icontains=q) |
+            Q(link__icontains=q) |
+            Q(owner__username__icontains=q)
+        ).distinct()
 
-    # print('Below are all the contents')
-    # print()
-    # print(contents)
+    # 1- Contents of the logged in user (for 'My Contents' section)
+    contents_my = contents.filter(
+        owner=request.user).distinct().order_by('-created')
+
+    # 2- Public and shared contents of the logged in user's friends (for 'Friends' Contents' section)
+    # Find friends first (logged in user follows and they follow back)
+    user = Profile.objects.get(owner=request.user).owner
+    user_profile = Profile.objects.get(owner=user)
+
+    # Find the users that logged in user follows
+    user_is_follower = Follow.objects.filter(follower=user_profile)
+
+    followed_profiles = []
+    for follow in user_is_follower:
+        followed_profiles.append(follow.followee)
+
+    followed_users = []
+    for profile in followed_profiles:
+        followed_users.append(profile.owner)
+
+    # Find the users that follow the logged in user
+    user_is_followee = Follow.objects.filter(followee=user_profile)
+
+    follower_profiles = []
+    for follow in user_is_followee:
+        follower_profiles.append(follow.follower)
+
+    follower_users = []
+    for profile in follower_profiles:
+        follower_users.append(profile.owner)
+
+    # Find common users between followed_users and follower_users (=friends)
+    friend_users = [
+        user for user in followed_users if user in follower_users]
+
+    # Get public and shared contents of friends
+    contents_friends = contents.filter(owner__in=friend_users,
+                                       visibility__in=['shared', 'public']).distinct().order_by('-created')
+
+    # 3- Public contents of all other users (that are visible to everyone)
+    exclude_users = [*friend_users, user]
+    contents_other = contents.all().exclude(
+        owner__in=exclude_users).filter(visibility='public').distinct().order_by('-created')
+
+    # 4- All visible contents to the currently logged in user
+    contents_all = contents_my.union(
+        contents_friends, contents_other).order_by('-created')
 
     contents_all_count = contents_all.count()
     tags = Tag.objects.all()
@@ -235,11 +302,63 @@ def home(request):
         if each_content.its_messages.all().exclude(user=each_content.owner).count() + each_content.likes.count() == 0:
             editable_contents.append(each_content)
 
-    print(request.session.keys())
-    print(request.session.values())
+    # print()
+    # print(request.session.keys())
+    # print()
+    # print(request.session.values())
+    # print()
+
+    activity_contents = contents_all.order_by('-created')[0:10]
+    contents_all_list = [content for content in contents_all]
+    activity_messages = Message.objects.filter(
+        content__in=contents_all_list).order_by('-created')[0:10]
+
+    activity_contents_list = [content for content in activity_contents]
+    activity_messages_list = [message for message in activity_messages]
+
+    activities = []
+    while (len(activities) < 10):
+        if len(activity_contents_list) > 0 and len(activity_messages_list) > 0:
+            if activity_contents_list[0].created >= activity_messages_list[0].created:
+                obj = activity_contents_list.pop(0)
+                activities.append([obj, 'content'])
+            else:
+                obj = activity_messages_list.pop(0)
+                activities.append([obj, 'message'])
+        elif len(activity_contents_list) > 0:
+            obj = activity_contents_list.pop(0)
+            activities.append([obj, 'content'])
+        elif len(activity_messages_list) > 0:
+            obj = activity_messages_list.pop(0)
+            activities.append([obj, 'message'])
+        else:
+            break
+
+    # print(activity_contents)
+    # print()
+    # print(activity_messages)
+    # print()
+    # print(activity_contents[0], type(activity_contents[0]),
+    #       activity_contents[0].created, type(activity_contents[0].created))
+    # print()
+    # print(activity_messages[0], type(activity_messages[0]),
+    #       activity_messages[0].created, type(activity_messages[0].created))
+    # print()
+    # print(activity_messages[0].created < activity_contents[0].created)
+    # print()
+    # # activities = [[object, type]]
+    # print()
+    # print('ACTIVITIES')
+    # for activity in activities:
+    #     print()
+    #     print(activity)
+    # print(len(activities))
+    # print()
+
+    profile = Profile.objects.get(owner=request.user)
 
     context = {'contents_all': contents_all,
-               'tags': tags, 'contents_all_count': contents_all_count, 'editable_contents': editable_contents}
+               'tags': tags, 'contents_all_count': contents_all_count, 'editable_contents': editable_contents, 'profile': profile, 'activities': activities}
     return render(request, 'base/home.html', context)
 
 

@@ -1,0 +1,27 @@
+<h3>Latest Activity</h3>
+<hr />
+{% for activity, type in activities %}
+<div>
+  {% if type == 'message' %}
+  <small
+    ><a href="{% url 'profile' activity.user.pk %}"
+      >{{activity.user.username}}</a
+    >
+    commented to content "<a href="{% url 'content' activity.content.pk %}"
+      >{{activity.content}}</a
+    >" {{activity.created|timesince}} ago.</small
+  >
+  <p>{{activity}}</p>
+  {% else %}
+  <small
+    ><a href="{% url 'profile' activity.owner.pk %}"
+      >{{activity.owner.username}}</a
+    >
+    created a new content named "<a href="{% url 'content' activity.pk %}"
+      >{{activity.header}}</a
+    >" {{activity.created|timesince}} ago.</small
+  >
+  {% endif %}
+  <hr />
+</div>
+{% endfor %}
