@@ -1,120 +1,83 @@
-{% extends 'main.html' %} {% load static %} {% block content %}
+{% extends 'main.html' %} {% block content %}
 
 <style>
   .profile-container {
     display: grid;
-    grid-template-columns: 1fr 3fr;
+    grid-template-columns: 30% 40% 30%;
   }
 
   img {
-    max-width: 60%;
+    max-width: 80%;
     height: auto;
   }
 </style>
 
-<h1>Profile Template</h1>
-
 <div class="profile-container">
   <div>
-    {% if request.user == profile.owner %}
-    <a href="{% url 'edit-profile' profile.owner.pk %}"> Edit Profile </a>
-    {% else %}
-    <form method="POST" action="">
-      {% csrf_token %} {% if follow_status == False %}
-      <span>Not following</span>
-      <input type="submit" name="Follow" value="Follow" />
-      {% if follow_back == True %}
-      <p>
-        "{{profile.owner.username}}" follows you. Follow them back to become
-        friends.
-      </p>
+    <div><h3>Profile Page</h3></div>
+    <div class="hr-div"><hr /></div>
+    <div>
+      {% if request.user == profile.owner %}
+      <a href="{% url 'edit-profile' profile.owner.pk %}"> Edit Profile </a>
       {% else %}
-      <p>"{{profile.owner.username}}" doesn't follow you either.</p>
+      <form method="POST" action="">
+        {% csrf_token %} {% if follow_status == False %}
+        <span style="text-decoration: underline; font-weight: bold"
+          >Status:</span
+        >
+        <span style="font-weight: bold"></span>
+        <span> Not following&nbsp;&nbsp;&nbsp;</span>
+        <input type="submit" name="Follow" value="Follow" />
+        <br />
+        {% if follow_back == True %}
+        <p>
+          "{{profile.owner.username}}" follows you. Follow them back to become
+          friends.
+        </p>
+        {% else %}
+        <p>"{{profile.owner.username}}" doesn't follow you either.</p>
+        {% endif %}
+        <pre></pre>
+        {% else %}
+        <span style="text-decoration: underline; font-weight: bold"
+          >Status:</span
+        >
+        <span style="font-weight: bold"></span>
+        <span>Following&nbsp;&nbsp;</span>
+        <input type="submit" name="Unfollow" value="Unfollow" />
+        <br />
+        {% if follow_back == True %}
+        <p>"{{profile.owner.username}}" follows you too. You're friends.</p>
+        {% else %}
+        <p>"{{profile.owner.username}}" doesn't currently follow you.</p>
+        {% endif %}
+        <pre></pre>
+        {% endif %}
+      </form>
       {% endif %}
-      <pre></pre>
-      {% else %}
-      <span>Following</span>
-      <input type="submit" name="Unfollow" value="Unfollow" />
-      {% if follow_back == True %}
-      <p>"{{profile.owner.username}}" follows you too. You're friends.</p>
-      {% else %}
-      <p>"{{profile.owner.username}}" doesn't currently follow you.</p>
-      {% endif %}
-      <pre></pre>
-      {% endif %}
-    </form>
+      <div class="hr-div"><hr /></div>
 
-    {% endif %}
-    <h2>User: {{profile.owner.username}}</h2>
-    <h2>
-      <img src="{{profile.profile_pic.url}}" alt="Default Profile Pic" />
-    </h2>
-    <h2>Bio: {{profile.bio}}</h2>
+      <h4>User: {{profile.owner.username}}</h4>
+      <h4>
+        <img src="{{profile.profile_pic.url}}" alt="Default Profile Pic" />
+      </h4>
+      <h4>Bio: <span style="font-weight: 200">{{profile.bio}}</span></h4>
+    </div>
   </div>
 
   <div>
-    <h5>{{visible_contents_count}} contents available</h5>
-    {% if request.user == profile.owner %}
-    <a href="{% url 'create-content' %}">Create New Content</a>
-    {% endif %}
-
-    <hr />
     <div>
-      {% for content in visible_contents %}
-      <div>
-        {% if request.user == content.owner%}
-        <pre></pre>
-        {% if content in editable_contents %}
-        <a href="{% url 'update-content' content.id %}"> Update Content </a>
-        <span>&nbsp;</span>
-        {% endif %}
-        <a href="{% url 'delete-content' content.id %}"> Delete Content </a>
-
-        <br />
-        <br />
-        {% endif %}
-
-        <span>
-          Owner:<a href="{% url 'profile' content.owner.pk %}"
-            >{{content.owner.username}}</a
-          >
-        </span>
-        <br />
-        {% comment %}
-        <a href="{% url 'profile' content.owner.id %}"
-          >{{content.owner.username}}</a
-        >
-        {% endcomment %}
-        <span>Content ID:{{content.id}}</span> <br />
-        <span>
-          Header:<a href="{% url 'content' content.id %}">{{content.header}}</a>
-        </span>
-        <br />
-        <span
-          >Link:<a href="{{content.link}}" target="_blank"
-            >{{content.link}}</a
-          ></span
-        >
-        <br />
-
-        {% comment %}
-        <h5>
-          {{content.id}} --
-          <a href="{% url 'content' content.id %}">{{content.header}}</a>
-        </h5>
-        {% endcomment %}
-        <span
-          >Tags: {% for tag in content.tag.all %}
-          <small>{{tag.name}}</small>
-          {% endfor%}
-        </span>
-        <br />
-        <span>Visibility:{{content.visibility}}</span>
-        <hr />
-      </div>
-      {% endfor %}
+      <h5>{{contents_all_count}} contents available</h5>
     </div>
+    <div class="hr-div"><hr /></div>
+
+    <a href="{% url 'create-content' %}">Create New Content</a>
+    <div class="hr-div"><hr /></div>
+
+    {% include 'base/feed_component.html'%}
   </div>
+
+  <div></div>
 </div>
 
 {% endblock %}

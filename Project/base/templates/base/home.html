@@ -1,9 +1,11 @@
 {% extends 'main.html' %} {% block content %}
 
 <style>
+
   .home-container {
     display: grid;
-    grid-template-columns: 1fr 3fr 1fr;
+    {% comment %} grid-template-columns: 1fr 3fr 1fr; {% endcomment %}
+    grid-template-columns: 20% 60% 20%;
   }
 
   img {
@@ -12,30 +14,47 @@
   }
 </style>
 
-<h1>Home Template</h1>
-
 <div class="home-container">
   <div>
-    <h1>Profile Template</h1>
-    {% if request.user == profile.owner %}
-    <a href="{% url 'edit-profile' profile.owner.pk %}"> Edit Profile </a>
-    {% endif %}
-    <h2>
-      User:
-      <a href="{% url 'profile' profile.owner.pk %}"
-        >{{profile.owner.username}}</a
-      >
-    </h2>
-    <h2>
-      <img src="{{profile.profile_pic.url}}" alt="Default Profile Pic" />
-    </h2>
-    <h2>Bio: {{profile.bio}}</h2>
+    <div><h3>Home Page</h3></div>
+    <div class="hr-div"><hr /></div>
+    <div>
+      <h5>
+        Profile <span>&nbsp;</span><span>&nbsp;</span>
+        <span style="font-weight: normal; font-size: 0.9rem">
+          {% if request.user == profile.owner %}
+          <a href="{% url 'edit-profile' profile.owner.pk %}"> Edit Profile </a>
+          {% endif %}
+        </span>
+      </h5>
+      <h5>
+        User:
+        <a href="{% url 'profile' profile.owner.pk %}"
+          >{{profile.owner.username}}</a
+        >
+      </h5>
+      <h5>
+        <img src="{{profile.profile_pic.url}}" alt="Default Profile Pic" />
+      </h5>
+      <h5>Bio: <span style="font-weight: 200">{{profile.bio}}</span></h5>
+    </div>
   </div>
 
   <div>
-    <h5>{{contents_all_count}} contents available</h5>
+    <div>
+      <h5>{{contents_all_count}} contents available</h5>
+      <p>
+        Filter contents by: <a href="{% url 'my' %}">My Contents</a
+        ><span>&nbsp;</span><span>&nbsp;</span>
+        <a href="{% url 'friends' %}">Friends' Contents</a><span>&nbsp;</span
+        ><span>&nbsp;</span> <a href="{% url 'other' %}">Other Contents</a
+        ><span>&nbsp;</span><span>&nbsp;</span>
+      </p>
+    </div>
+    <div class="hr-div"><hr /></div>
+
     <a href="{% url 'create-content' %}">Create New Content</a>
-    <hr />
+    <div class="hr-div"><hr /></div>
 
     {% include 'base/feed_component.html'%}
   </div>

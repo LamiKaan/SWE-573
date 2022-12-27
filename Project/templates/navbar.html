@@ -1,16 +1,82 @@
-<a href="/">
-  <h1>Home Page</h1>
-</a>
+<style>
+  .navbar-container {
+    display: grid;
+    grid-template-columns: 2;
+    grid-template-rows: 80% 20%;
+    grid-template-areas:
+      "header welcome"
+      "search links";
+    height: 100px;
+  }
 
-<form method="GET" action="{% url 'home' %}">
-  <input type="text" name="q" placeholder="Quick search..." />
-</form>
+  #header {
+    grid-area: header;
+  }
 
-{% if request.user.is_authenticated %}
-<p>Hello {{request.user}}</p>
-<a href="{% url 'logout' %}">Logout</a>
-{% else %}
-<a href="{% url 'login' %}">Login</a>
-<a href="{% url 'register' %}">Register</a>
-{% endif %}
+  #header a {
+    display: block;
+    float: left;
+    clear: both;
+  }
+
+  #welcome {
+    grid-area: welcome;
+    text-align: right;
+  }
+
+  #search {
+    grid-area: search;
+  }
+
+  #search a {
+    display: block;
+    float: left;
+    clear: both;
+  }
+
+  #links {
+    grid-area: links;
+    text-align: right;
+  }
+</style>
+
+<div class="navbar-container">
+  <div id="header">
+    <a href="/" style="text-decoration: none; display: block">
+      <h2>Content Saver</h2>
+    </a>
+  </div>
+
+  <div id="welcome">
+    {% if request.user.is_authenticated %}
+    <p>Welcome, you're logged in as "{{request.user}}"</p>
+    {% endif %}
+  </div>
+
+  {% if request.user.is_authenticated %}
+  <div id="search">
+    <span
+      ><form method="GET" action="{% url 'home' %}">
+        <input type="text" name="q" placeholder="Quick search..." />
+      </form>
+    </span>
+  </div>
+  {% endif %}
+
+  <div id="links">
+    {% if request.user.is_authenticated %}
+    <a href="{% url 'home' %}">Home</a>
+    <span>&nbsp;</span><span>&nbsp;</span>
+    <a href="{% url 'profile' user_profile.owner.pk %}">Profile</a>
+    <span>&nbsp;</span><span>&nbsp;</span>
+    <a href="{% url 'logout' %}">Logout</a>
+
+    {% else %}
+    <a href="{% url 'login' %}">Login</a>
+    <span>&nbsp;</span><span>&nbsp;</span>
+    <a href="{% url 'register' %}">Register</a>
+    {% endif %}
+  </div>
+</div>
+
 <hr />

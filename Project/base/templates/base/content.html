@@ -1,87 +1,124 @@
 {% extends 'main.html' %} {% block content %}
-<h1>Content Template</h1>
 
-{% if request.user == content.owner %}
-<pre></pre>
-{% if editable %}
-<a href="{% url 'update-content' content.id %}"> Update Content </a>
-<span>&nbsp;</span>
-{% endif %}
-<a href="{% url 'delete-content' content.id %}"> Delete Content </a>
-<br />
-<br />
-{% endif %}
+<style>
 
-<h2>Owner:</h2>
-<a href="{% url 'profile' content.owner.id %}">{{content.owner.username}}</a>
+  .content-container {
+    display: grid;
+    {% comment %} grid-template-columns: 1fr 3fr 1fr; {% endcomment %}
+    grid-template-columns: 20% 60% 20%;
+  }
+</style>
 
-<div>
-  <h2>Content ID:</h2>
-  <span>{{content.id}}</span>
-</div>
-
-<h2>Content Name:</h2>
-<p>{{content.header}}</p>
-
-<h2>Link:</h2>
-<a href="{{content.link}}" target="_blank">{{content.link}}</a>
-
-<h2>Tags:</h2>
-{% for tag in content.tag.all %}
-<small>{{tag.name}}</small>
-{% endfor%}
-
-<h2>Description:</h2>
-<p>{{content.description}}</p>
-
-<h2>Visibility:</h2>
-<p>{{content.visibility}}</p>
-
-<p>{{like_count}} likes</p>
-
-{% if request.user != content.owner %}
-<form method="POST" action="">
-  {% csrf_token %} {% if like_status == False %}
-  <input type="submit" name="Like" value="Like" />
-  {% else %}
-  <input type="submit" name="Unlike" value="Unlike" />
-  {% endif %}
-</form>
-{% endif %}
-
-<div class="comment-wrapper">
-  <h3>Comments</h3>
-  <hr />
-
-  {% for comment in comments%}
+<div class="content-container">
   <div>
-    <small
-      ><a href="{% url 'profile' comment.user.pk %}">{{comment.user}}</a>
-      commented {{comment.created | timesince}} ago
-      <span>&nbsp;&nbsp;</span>
-      {% if request.user == comment.user %}
-      <a href="{% url 'delete-message' comment.pk %}">Delete Comment</a>
-      {% endif %}
-    </small>
-    <p>{{comment.body}}</p>
-    <hr />
+    <div><h3>Content Page</h3></div>
+    <div class="hr-div"><hr /></div>
   </div>
-  {% endfor%}
 
-  <div class="comment-form">
-    <form action="" method="POST">
-      {% csrf_token %}
-      <input
-        type="text"
-        name="comment-text"
-        placeholder="Write your message here..."
-        required
-        pattern="\S(.*\S)?"
-        title="Please provide a non-empty comment"
-      />
-      <input type="submit" name="submit-comment" value="Comment" />
+  <div>
+    <h1>
+      Content ID {{content.pk}}:
+      <span style="font-weight: 250">{{content.header}}</span>
+    </h1>
+
+    {% if request.user == content.owner %}
+    <pre></pre>
+    {% if editable %}
+    <a href="{% url 'update-content' content.id %}"> Update Content </a>
+    <span>&nbsp;</span>
+    {% endif %}
+    <a href="{% url 'delete-content' content.id %}"> Delete Content </a>
+    <br />
+    <br />
+    {% endif %}
+
+    <h3>
+      Owner:
+      <a href="{% url 'profile' content.owner.id %}"
+        >{{content.owner.username}}</a
+      >
+    </h3>
+
+    <h3>
+      Link:{% if content.link != None %}
+      <a href="{{content.link}}" target="_blank">{{content.link}}</a>
+      {% endif%}
+    </h3>
+
+    <h3>
+      Tags: {% for tag in content.tag.all %}
+      <span style="font-weight: 250">{{tag.name}}&nbsp;</span>
+      {% endfor %}
+    </h3>
+
+    <h3>
+      Visibility:
+      <span style="font-weight: 250">{{content.visibility}}</span>
+    </h3>
+
+    <h3>
+      Description:
+      <span style="font-weight: 250">{{content.description}}</span>
+    </h3>
+
+    <div class="hr-div"><hr /></div>
+    <div class="hr-div"><hr /></div>
+
+    <h3>
+      <span style="font-weight: 250">{{like_count}} likes</span>
+    </h3>
+
+    {% if request.user != content.owner %}
+    <form method="POST" action="">
+      {% csrf_token %} {% if like_status == False %}
+      <input type="submit" name="Like" value="Like" />
+      {% else %}
+      <input type="submit" name="Unlike" value="Unlike" />
+      {% endif %}
     </form>
+    {% endif %}
+
+    <div class="hr-div"><hr /></div>
+    <div class="hr-div"><hr /></div>
+
+    <div class="comment-wrapper">
+      <h4>Comments</h4>
+      <div class="hr-div"><hr /></div>
+
+      {% for comment in comments%}
+      <div>
+        <small
+          ><a href="{% url 'profile' comment.user.pk %}">{{comment.user}}</a>
+          commented {{comment.created | timesince}} ago
+          <span>&nbsp;&nbsp;</span>
+          {% if request.user == comment.user %}
+          <a href="{% url 'delete-message' comment.pk %}">Delete Comment</a>
+          {% endif %}
+        </small>
+        <p>{{comment.body}}</p>
+        <div class="hr-div"><hr /></div>
+      </div>
+      {% endfor%}
+
+      <div class="comment-form">
+        <form action="" method="POST">
+          {% csrf_token %}
+          <input
+            type="text"
+            name="comment-text"
+            placeholder="Write your message here..."
+            required
+            pattern="\S(.*\S)?"
+            title="Please provide a non-empty comment"
+            size="83"
+          />
+          <input type="submit" name="submit-comment" value="Comment" />
+        </form>
+      </div>
+    </div>
   </div>
+
+  <div></div>
 </div>
 
 {% endblock %}

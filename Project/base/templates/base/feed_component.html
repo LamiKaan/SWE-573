@@ -23,17 +23,17 @@
     <a href="{% url 'profile' content.owner.id %}"
       >{{content.owner.username}}</a
     >
+    {% endcomment %} {% comment %} <span>Content ID:{{content.pk}}</span> <br />
     {% endcomment %}
-    <span>Content ID:{{content.pk}}</span> <br />
     <span>
       Header:<a href="{% url 'content' content.pk %}">{{content.header}}</a>
     </span>
     <br />
     <span
-      >Link:<a href="{{content.link}}" target="_blank"
-        >{{content.link}}</a
-      ></span
-    >
+      >Link: {% if content.link != None %}
+      <a href="{{content.link}}" target="_blank">{{content.link}}</a>
+      {% endif%}
+    </span>
     <br />
 
     {% comment %}
@@ -48,7 +48,7 @@
       {% endfor%}
     </span>
     <br />
-    <span>Visibility:{{content.visibility}}</span>
+    <span>Visibility: <small>{{content.visibility}}</small></span>
     <hr />
   </div>
   {% endfor %}
