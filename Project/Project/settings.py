@@ -87,9 +87,9 @@ WSGI_APPLICATION = "Project.wsgi.application"
 DATABASES = {
     "default": {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'djangoproject',
-        'USER': 'lamikaan',
-        'PASSWORD': 'password',
+        'NAME': os.environ.get('NAME', 'djangoproject'),
+        'USER': os.environ.get('USER', 'lamikaan'),
+        'PASSWORD': os.environ.get('PASSWORD', 'password'),
         'HOST': os.environ.get('HOST', 'localhost'),
         # host.docker.internal
         'PORT': '5432',
