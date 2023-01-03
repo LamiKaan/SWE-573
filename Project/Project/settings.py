@@ -38,10 +38,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # "django_extensions",
 
     # For Django to know about the "base" app I created
     "base.apps.BaseConfig",
 ]
+
+# GRAPH_MODELS = {
+#     'app_labels': ["base"]
+# }
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

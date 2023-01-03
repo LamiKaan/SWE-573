@@ -24,7 +24,7 @@ class RegisterTest(BaseTest):
         response = self.client.get(self.register_url)
         self.assertEqual(response.status_code, 200)
         # self.assertTemplateUsed(response, 'templates/base/login_register.html')
-        self.assertTemplateUsed(response, 'base/login_register.html')
+        self.assertTemplateUsed(response, 'base/register.html')
 
 
 # Room.objects.all()
