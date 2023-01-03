@@ -87,10 +87,10 @@ WSGI_APPLICATION = "Project.wsgi.application"
 DATABASES = {
     "default": {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('NAME', 'djangoproject'),
-        'USER': os.environ.get('USER', 'lamikaan'),
-        'PASSWORD': os.environ.get('PASSWORD', 'password'),
-        'HOST': os.environ.get('HOST', 'localhost'),
+        'NAME': os.environ.get('NAME', 'postgres'), #postgres
+        'USER': os.environ.get('USER', 'postgres'), #lamikaan
+        'PASSWORD': os.environ.get('PASSWORD', 'postgres'), #password
+        'HOST': os.environ.get('HOST', 'db'),
         # host.docker.internal
         'PORT': '5432',
     }
